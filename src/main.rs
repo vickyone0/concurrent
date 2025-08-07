@@ -1,19 +1,27 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use reqwest::StatusCode;
 
+
+async fn heartbeat(mut num: u32) {
+    loop {
+        println!("beating... {}", num);
+        tokio::time::sleep(Duration::from_millis(25)).await;
+
+        num +=1;
+    }
+}
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let start_time = Instant::now();
-    let status_1 = get_status("https://google.com").await?;
-    println!("status 1: {}",status_1);
+    tokio::spawn(heartbeat(0));
+    let (status_1,status_2) = tokio::join!(get_status("https://google.com"),get_status("https://google.com"));
+    println!("status 1: {}",status_1.unwrap());
+    println!("status 2: {}",status_2.unwrap());
 
-    let status_2 = get_status("https://google.com").await?;
-
-    println!("status 2:{}",status_2);
 
     println!("Overall execution time: {}ms",start_time.elapsed().as_millis());
     Ok(())
